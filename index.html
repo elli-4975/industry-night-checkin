@@ -19,7 +19,9 @@
   <div class="message" id="result"></div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzHrx5SgWtG2fOY9_Qfj8IKwu5Mm3w_RmUoM7cIBHeSH7SIg4Xx_STV0fx3EpP8bhrl/exec";  // Apps Script Web App URL
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzHrx5SgWtG2fOY9_Qfj8IKwu5Mm3w_RmUoM7cIBHeSH7SIg4Xx_STV0fx3EpP8bhrl/exec";       // <-- your Google Apps Script web app URL
+    const rsvpFormURL = "https://docs.google.com/forms/d/e/1FAIpQLSdMoG7ySrfnlO4lPksTj7A0mNMa5Pj2xDqBeeEGkSdrMtU5CA/viewform?usp=dialog";       // <-- where non-RSVPs should go
+    const thankYouURL = "https://electronics.stackexchange.com/questions/557937/solder-wont-stick-to-metal-tab-no-matter-what-i-do";  // <-- where confirmed attendees go
 
     async function checkIn() {
       const name = document.getElementById('name').value.trim();
@@ -37,18 +39,17 @@
         const data = await response.json();
 
         if (data.status === "rsvp") {
-          resultDiv.innerHTML = "✅ You're on the RSVP list! Welcome to Industry Night.";
+          resultDiv.innerHTML = "✅ You're on the RSVP list! Redirecting…";
+          setTimeout(() => { window.location.href = thankYouURL; }, 1500);
         } else {
-          resultDiv.innerHTML = `
-            ❌ We couldn't find your name on the RSVP list.<br>
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLSdMoG7ySrfnlO4lPksTj7A0mNMa5Pj2xDqBeeEGkSdrMtU5CA/viewform?usp=dialog" target="_blank">Please register here.</a>
-          `;
+          resultDiv.innerHTML = "❌ We couldn't find your name. Redirecting to registration…";
+          setTimeout(() => { window.location.href = rsvpFormURL; }, 1500);
         }
       } catch (err) {
+        console.error(err);
         resultDiv.textContent = "Error connecting to server. Please try again.";
       }
     }
   </script>
 </body>
 </html>
-

@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Industry Night Check-In</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin-top: 100px; }
-    input { margin: 10px; padding: 10px; width: 250px; font-size: 16px; }
+    body { font-family: Arial, sans-serif; text-align: center; margin: 40px 10px; }
+    input { margin: 10px; padding: 10px; width: 80%; max-width: 250px; font-size: 16px; }
     button { padding: 10px 25px; font-size: 16px; cursor: pointer; }
     .message { margin-top: 25px; font-size: 18px; font-weight: bold; }
     iframe { border: none; width: 95%; height: 800px; margin-top: 20px; }
@@ -47,7 +48,6 @@
         const response = await fetch(`${scriptURL}?name=${encodeURIComponent(name)}`);
         const data = await response.json();
 
-        // Expect your Apps Script to check against RSVP_List only.
         if (data.status === "rsvp") {
           showSuccess(name);
         } else if (!auto) {
@@ -64,7 +64,7 @@
       const resultDiv = document.getElementById("result");
       resultDiv.textContent = "Waiting for your form submission…";
 
-      // start polling every 10 s to see if their name now appears in RSVP_List
+      // poll every 10s until their name appears in RSVP_List
       if (!polling) {
         polling = setInterval(() => checkIn(true), 10000);
       }
@@ -73,10 +73,10 @@
     function showSuccess(name) {
       clearInterval(polling);
       document.body.innerHTML = `
-        <div style="text-align:center; margin-top:100px;">
+        <div style="text-align:center; margin-top:80px;">
           <h1>You're checked in${name ? ', ' + name : ''}!</h1>
           <p>Please show this screen at the desk to receive your name tag.</p>
-          <img src="sponsors.png" alt="Event Branding" style="margin-top:40px; width:400px; height:auto;">
+          <img src="sponsors.png" alt="Event Branding" style="margin-top:40px; max-width:90%; height:auto;">
         </div>
       `;
       startConfetti();

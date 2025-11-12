@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Industry Night Check-In</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 100px; }
+    input { margin: 10px; padding: 10px; width: 250px; font-size: 16px; }
+    button { padding: 10px 25px; font-size: 16px; cursor: pointer; }
+    .message { margin-top: 25px; font-size: 18px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>Industry Night Check-In</h2>
+  <p>Enter your full name exactly as you used to RSVP:</p>
+  <input id="name" type="text" placeholder="Full Name">
+  <br>
+  <button onclick="checkIn()">Check In</button>
+  <div class="message" id="result"></div>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwhw7owoEuKE5QJ50EfIq0RV0k0-y6k7Fs4LeYbgIfBQlvLmrb_rgwRnLA-rEyOsaLd/exec";  // Apps Script Web App URL
+
+    async function checkIn() {
+      const name = document.getElementById('name').value.trim();
+      const resultDiv = document.getElementById('result');
+
+      if (!name) {
+        resultDiv.textContent = "Please enter your name.";
+        return;
+      }
+
+      resultDiv.textContent = "Checking…";
+
+      try {
+        const response = await fetch(`${scriptURL}?name=${encodeURIComponent(name)}`);
+        const data = await response.json();
+
+        if (data.status === "rsvp") {
+          resultDiv.innerHTML = "✅ You're on the RSVP list! Welcome to Industry Night.";
+        } else {
+          resultDiv.innerHTML = `
+            ❌ We couldn't find your name on the RSVP list.<br>
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSdMoG7ySrfnlO4lPksTj7A0mNMa5Pj2xDqBeeEGkSdrMtU5CA/viewform?usp=dialog" target="_blank">Please register here.</a>
+          `;
+        }
+      } catch (err) {
+        resultDiv.textContent = "Error connecting to server. Please try again.";
+      }
+    }
+  </script>
+</body>
+</html>

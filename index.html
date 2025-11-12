@@ -1,54 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Industry Night Check-In</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin-top: 100px; }
     input { margin: 10px; padding: 10px; width: 250px; font-size: 16px; }
     button { padding: 10px 25px; font-size: 16px; cursor: pointer; }
     .message { margin-top: 25px; font-size: 18px; font-weight: bold; }
+    iframe { border: none; width: 95%; height: 800px; margin-top: 20px; }
   </style>
 </head>
 <body>
   <h2>Industry Night Check-In</h2>
-  <p>Enter your full name exactly as you used to RSVP:</p>
-  <input id="name" type="text" placeholder="Full Name">
-  <br>
+  <input id="name" type="text" placeholder="Full Name" />
+  <br />
   <button onclick="checkIn()">Check In</button>
   <div class="message" id="result"></div>
 
+  <div id="form-section" style="display:none;">
+    <p>If you did RSVP please make sure your name is entered the same as you did in the form and try again above.</p>
+    <iframe
+      id="rsvpForm"
+      src="https://docs.google.com/forms/d/e/1FAIpQLSdMoG7ySrfnlO4lPksTj7A0mNMa5Pj2xDqBeeEGkSdrMtU5CA/viewform?embedded=true">
+    </iframe>
+    <p style="margin-top:20px; font-size:16px;">
+      Once you submit the form, this page will automatically check you in.
+    </p>
+  </div>
+
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzpL3moD7Xw0Ve_wKc2UkFw936jTq0BuBpMAH9RzfWeLS1VDBwHDq6S5xHVoZTOrs2Dvg/exec";       // <-- your Google Apps Script web app URL
-    const rsvpFormURL = "https://docs.google.com/forms/d/e/1FAIpQLSdMoG7ySrfnlO4lPksTj7A0mNMa5Pj2xDqBeeEGkSdrMtU5CA/viewform?usp=dialog";       // <-- where non-RSVPs should go
-    const thankYouURL = "https://electronics.stackexchange.com/questions/557937/solder-wont-stick-to-metal-tab-no-matter-what-i-do";  // <-- where confirmed attendees go
+    const scriptURL =
+      "https://script.google.com/macros/s/AKfycbzpL3moD7Xw0Ve_wKc2UkFw936jTq0BuBpMAH9RzfWeLS1VDBwHDq6S5xHVoZTOrs2Dvg/exec";
+    let polling = null;
 
-    async function checkIn() {
-      const name = document.getElementById('name').value.trim();
-      const resultDiv = document.getElementById('result');
-
+    async function checkIn(auto = false) {
+      const name = document.getElementById("name").value.trim();
+      const resultDiv = document.getElementById("result");
       if (!name) {
         resultDiv.textContent = "Please enter your name.";
         return;
       }
 
-      resultDiv.textContent = "Checking…";
-
       try {
         const response = await fetch(`${scriptURL}?name=${encodeURIComponent(name)}`);
         const data = await response.json();
 
+        // Expect your Apps Script to check against RSVP_List only.
         if (data.status === "rsvp") {
-          resultDiv.innerHTML = "✅ You're on the RSVP list! Redirecting…";
-          setTimeout(() => { window.location.href = thankYouURL; }, 1500);
-        } else {
-          resultDiv.innerHTML = "❌ We couldn't find your name. Redirecting to registration…";
-          setTimeout(() => { window.location.href = rsvpFormURL; }, 1500);
+          showSuccess(name);
+        } else if (!auto) {
+          showForm(name);
+          resultDiv.textContent = "Please fill out the form to complete your check-in.";
         }
       } catch (err) {
-        console.error(err);
-        resultDiv.textContent = "Error connecting to server. Please try again.";
+        if (!auto) resultDiv.textContent = "Error connecting to server. Please try again.";
       }
+    }
+
+    function showForm(name) {
+      document.getElementById("form-section").style.display = "block";
+      const resultDiv = document.getElementById("result");
+      resultDiv.textContent = "Waiting for your form submission…";
+
+      // start polling every 10 s to see if their name now appears in RSVP_List
+      if (!polling) {
+        polling = setInterval(() => checkIn(true), 10000);
+      }
+    }
+
+    function showSuccess(name) {
+      clearInterval(polling);
+      document.body.innerHTML = `
+        <div style="text-align:center; margin-top:100px;">
+          <h1>You're checked in${name ? ', ' + name : ''}!</h1>
+          <p>Please show this screen at the desk to receive your name tag.</p>
+          <img src="sponsors.png" alt="Event Branding" style="margin-top:40px; width:400px; height:auto;">
+        </div>
+      `;
+      startConfetti();
+    }
+
+    function startConfetti() {
+      const duration = 5000;
+      const end = Date.now() + duration;
+      (function frame() {
+        confetti({
+          particleCount: 5,
+          startVelocity: 30,
+          spread: 360,
+          ticks: 60,
+          origin: { x: Math.random(), y: Math.random() - 0.2 },
+          colors: ['#f5b041','#3498db','#a569bd','#58d68d','#ec7063']
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
     }
   </script>
 </body>
